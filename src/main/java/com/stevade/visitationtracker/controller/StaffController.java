@@ -9,7 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RestController @RequestMapping("/api/v1")
+import javax.mail.MessagingException;
+
+@RestController @RequestMapping("")
 public class StaffController {
 
     private final StaffService staffService;
@@ -37,7 +39,11 @@ public class StaffController {
 
     @PostMapping("/visit")
     public ResponseEntity<?> recordVisit(@RequestBody VisitorLogsDto visitorLogsDto){
-        return staffService.logVisit(visitorLogsDto);
+        try {
+            return staffService.logVisit(visitorLogsDto);
+        } catch (MessagingException e) {
+            return new ResponseEntity<>("Exception was caught while sending mail", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 

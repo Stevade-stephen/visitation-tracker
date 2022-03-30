@@ -37,20 +37,17 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                                     HttpServletResponse httpServletResponse,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        log.info("Attempting to login in filter");
         final String authorizationHeader = httpServletRequest.getHeader("Authorization");
         String username = null;
         String jwtToken = null;
 
         if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")){
-            log.info("Checking ");
             jwtToken = authorizationHeader.substring(7);
             username = jwtTokenProvider.getUsernameFromToken(jwtToken);
         }
 
         if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
             UserDetails userDetails = userService.loadUserByUsername(username);
-            log.info("Inside here");
 
             if (blackListService.getToken(authorizationHeader) == null && Boolean.TRUE.equals(jwtTokenProvider.validateToken(jwtToken, userDetails))) {
                     UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
@@ -60,6 +57,5 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(httpServletRequest, httpServletResponse);
-        log.info("After passing to next chain");
     }
 }

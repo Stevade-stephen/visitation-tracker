@@ -28,8 +28,6 @@ public class LoadSuperAdmin {
                     Role.SUPER_ADMIN
             );
 
-            member.setAccountNonLocked(true);
-            member.setEnabled(true);
             userRepository.save(member);
             log.info(password);
         };

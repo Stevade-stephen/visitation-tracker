@@ -1,6 +1,7 @@
 package com.stevade.visitationtracker.security;
 
 import com.stevade.visitationtracker.enums.Role;
+import com.stevade.visitationtracker.repositories.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,9 +15,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import static java.lang.String.format;
 
 @Slf4j
 @Configuration
@@ -25,12 +29,14 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	private final PasswordEncoder encoder;
 	private final UserDetailsService userService;
 	private final JwtRequestFilter jwtRequestFilter;
+	private final UserRepository userRepo;
 
 	public SecurityConfiguration(final UserDetailsService userService,
-                                 final JwtRequestFilter jwtRequestFilter) {
+                                 final JwtRequestFilter jwtRequestFilter, final UserRepository userRepo) {
 		this.encoder = new PasswordConfiguration().encoder();
 		this.userService = userService;
 		this.jwtRequestFilter = jwtRequestFilter;
+		this.userRepo = userRepo;
 	}
 
 	@Override
@@ -39,9 +45,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 				.csrf().disable()
 				.authorizeRequests()
 				.antMatchers(HttpMethod.POST,"/login").permitAll()
-				.antMatchers(HttpMethod.POST,"/staff").permitAll()
 				.antMatchers("/visitor","/visitors","/visitor/**").hasAuthority(String.valueOf(Role.STAFF))
-				.antMatchers("/staff/**").hasAuthority(String.valueOf(Role.SUPER_ADMIN))
+				.antMatchers("/staff/**","/staff").hasAuthority(String.valueOf(Role.SUPER_ADMIN))
 				.anyRequest().authenticated()
 				.and().sessionManagement()
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
@@ -71,8 +76,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-		auth.authenticationProvider(authProvider());
-		auth.userDetailsService(userService);
+		auth.userDetailsService(username -> userRepo.findUserByEmail(username)
+				.orElseThrow(() -> new UsernameNotFoundException(format("User: %s not found", username))));
 	}
 
 

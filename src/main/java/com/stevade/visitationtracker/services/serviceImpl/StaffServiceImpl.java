@@ -60,7 +60,7 @@ public class StaffServiceImpl implements StaffService {
             }
 
             return new ResponseEntity<>(visitorLogRepository.save(visitorLogs), HttpStatus.OK);
-            
+
         }
         else
         return new ResponseEntity<>("No such visitor with id " + visitorLogsDto.getVisitorId(), HttpStatus.NOT_FOUND);
