@@ -1,5 +1,6 @@
 package com.stevade.visitationtracker.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -9,15 +10,18 @@ import java.util.Properties;
 
 @Configuration
 public class MailConfiguration {
-
+    @Value(value = "${username}")
+    private String username;
+    @Value(value = "${password}")
+    private String password;
         @Bean
         public JavaMailSender mailSender() {
             JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
             mailSender.setHost("smtp.gmail.com");
             mailSender.setPort(587);
 
-            mailSender.setUsername("ejeh.adehor@gmail.com");
-            mailSender.setPassword("stEv@de.1");
+            mailSender.setUsername(username);
+            mailSender.setPassword(password);
 
             Properties props = mailSender.getJavaMailProperties();
             props.put("mail.transport.protocol", "smtp");
